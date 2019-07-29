@@ -23,12 +23,14 @@ const NUM_CLASSES = 3;
 const IMAGE_SIZE = 227;
 // K value for KNN
 const TOPK = 10;
-
+const CLASS_NAMES=["rock","paper","scissors"]
+let predicted = null;
 
 class Main {
   constructor() {
     // Initiate variables
     this.infoTexts = [];
+    this.classPredictor = null;
     this.training = -1; // -1 when no class is being trained
     this.videoPlaying = false;
 
@@ -42,6 +44,9 @@ class Main {
 
     // Add video element to DOM
     document.body.appendChild(this.video);
+    let instructions = document.createElement("div");
+    instructions.innerText="click each 'train' button to train the computer on one frame from your camera";
+    document.body.appendChild(instructions);
 
     // Create training buttons and info texts    
     for (let i = 0; i < NUM_CLASSES; i++) {
@@ -51,19 +56,39 @@ class Main {
 
       // Create training button
       const button = document.createElement('button')
-      button.innerText = "Train " + i;
+      button.innerText = "Train " + CLASS_NAMES[i];
       div.appendChild(button);
 
       // Listen for mouse events when clicking the button
       button.addEventListener('mousedown', () => this.training = i);
       button.addEventListener('mouseup', () => this.training = -1);
 
+            button.addEventListener('touchstart', () => this.training = i);
+      button.addEventListener('touchend', () => this.training = -1);
+
       // Create info text
       const infoText = document.createElement('span')
       infoText.innerText = " No examples added";
       div.appendChild(infoText);
       this.infoTexts.push(infoText);
+
     }
+      //Create class prediction headline
+      this.classPredictor = document.createElement('span');
+      this.classPredictor.style.position="absolute";
+      this.classPredictor.style.left="300px";
+      this.classPredictor.style.top="80px";
+      document.body.appendChild(this.classPredictor);
+      //Create PLAY button
+      this.playBtn = document.createElement('button');
+      this.playBtn.style.position="absolute";
+      this.playBtn.style.left="300px";
+      this.playBtn.style.top="100px";
+      this.playBtn.style.width="80px";
+      this.playBtn.style.height="40px";
+      this.playBtn.innerText="PLAY ROUND";
+      this.playBtn.addEventListener('click', doPredict );
+      document.body.appendChild(this.playBtn);
 
 
     // Setup webcam
@@ -139,6 +164,8 @@ class Main {
             this.infoTexts[i].innerText = ` ${exampleCount[i]} examples - ${res.confidences[i] * 100}%`
           }
         }
+        //this.classPredictor.innerHTML="You say...<strong>"+CLASS_NAMES[res.classIndex]+"</strong>";
+        predicted=CLASS_NAMES[res.classIndex];
       }
 
       // Dispose image when done
@@ -150,5 +177,40 @@ class Main {
     this.timer = requestAnimationFrame(this.animate.bind(this));
   }
 }
+function doPredict() {
+  console.log("do prediction and round");
+  let win=0;
+  let computer_choice = CLASS_NAMES[Math.floor(Math.random()*3)];
+  console.log("computer chose "+computer_choice);
+  if (predicted==="paper" && computer_choice == "scissors") {
+    win=-1;
+  }
+  if (predicted==="paper" && computer_choice == "rock") {
+    win=1;
+  }
+  if (predicted==="paper" && computer_choice == "paper") {
+    win=0;
+  }
+  if (predicted==="rock" && computer_choice == "scissors") {
+    win=1;
+  }
+  if (predicted==="rock" && computer_choice == "paper") {
+    win=-1;
+  }
+  if (predicted==="rock" && computer_choice == "rock") {
+    win=0;
+  }
+  if (predicted==="scissors" && computer_choice == "rock") {
+    win=-1;
+  }
+  if (predicted==="scissors" && computer_choice == "paper") {
+    win=1;
+  }
+  if (predicted==="scissors" && computer_choice == "scissors") {
+    win=0;
+  }
+  console.log(win);
+  alert("You played..."+predicted+"\n Computer played "+computer_choice+"\n"+(win>0 ? "YOU WIN" : win==0 ? "DRAW" : "YOU LOSE"));
 
+}
 window.addEventListener('load', () => new Main());
