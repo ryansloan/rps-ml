@@ -45,7 +45,7 @@ class Main {
     // Add video element to DOM
     document.body.appendChild(this.video);
     let instructions = document.createElement("div");
-    instructions.innerText="click each 'train' button to train the computer on one frame from your camera";
+    instructions.innerHTML="<i>click each 'train' button to train the computer on one frame from your camera</i><br />";
     document.body.appendChild(instructions);
 
     // Create training buttons and info texts    
@@ -57,6 +57,7 @@ class Main {
       // Create training button
       const button = document.createElement('button')
       button.innerText = "Train " + CLASS_NAMES[i];
+      button.style.height="40px";
       div.appendChild(button);
 
       // Listen for mouse events when clicking the button
@@ -83,7 +84,7 @@ class Main {
       this.playBtn = document.createElement('button');
       this.playBtn.style.position="absolute";
       this.playBtn.style.left="300px";
-      this.playBtn.style.top="100px";
+      this.playBtn.style.top="180px";
       this.playBtn.style.width="80px";
       this.playBtn.style.height="40px";
       this.playBtn.innerText="PLAY ROUND";
