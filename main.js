@@ -25,7 +25,8 @@ const IMAGE_SIZE = 227;
 const TOPK = 10;
 const CLASS_NAMES=["rock","paper","scissors"]
 let predicted = null;
-
+let example_counts = [0,0,0];
+const MIN_EXAMPLES = 20;
 class Main {
   constructor() {
     // Initiate variables
@@ -61,11 +62,11 @@ class Main {
       div.appendChild(button);
 
       // Listen for mouse events when clicking the button
-      button.addEventListener('mousedown', () => this.training = i);
+      button.addEventListener('mousedown', () => { this.training = i; this.trainExample();});
       button.addEventListener('mouseup', () => this.training = -1);
 
-            button.addEventListener('touchstart', () => this.training = i);
-      button.addEventListener('touchend', () => this.training = -1);
+      button.addEventListener('touchstart', () => { this.training = i; this.trainExample();});
+      button.addEventListener('touchend', () => this.traininsg = -1);
 
       // Create info text
       const infoText = document.createElement('span')
@@ -88,7 +89,7 @@ class Main {
       this.playBtn.style.width="80px";
       this.playBtn.style.height="40px";
       this.playBtn.innerText="PLAY ROUND";
-      this.playBtn.addEventListener('click', doPredict );
+      this.playBtn.addEventListener('click', () => this.playRound() );
       document.body.appendChild(this.playBtn);
 
 
@@ -116,16 +117,14 @@ class Main {
       this.stop();
     }
     this.video.play();
-    this.timer = requestAnimationFrame(this.animate.bind(this));
   }
 
   stop() {
     this.video.pause();
     cancelAnimationFrame(this.timer);
   }
-
-  async animate() {
-    if (this.videoPlaying) {
+  async trainExample() {
+        if (this.videoPlaying) {
       // Get image data from video element
       const image = tf.fromPixels(this.video);
 
@@ -136,10 +135,30 @@ class Main {
       // Train class if one of the buttons is held down
       if (this.training != -1) {
         logits = infer();
-
         // Add current image to classifier
         this.knn.addExample(logits, this.training)
       }
+      example_counts[this.training]++;
+      if (example_counts[this.training] > 0) {
+            this.infoTexts[this.training].innerText = ` ${example_counts[this.training]} examples ${(example_counts[this.training]>=MIN_EXAMPLES ? '✅' : '')}`
+      }
+
+      // Dispose image when done
+      image.dispose();
+      if (logits != null) {
+        logits.dispose();
+      }
+    }
+  }
+
+async playRound() {
+      if (this.videoPlaying) {
+      // Get image data from video element
+      const image = tf.fromPixels(this.video);
+
+      let logits;
+      // 'conv_preds' is the logits activation of MobileNet.
+      const infer = () => this.mobilenet.infer(image, 'conv_preds');
 
       const numClasses = this.knn.getNumClasses();
       if (numClasses > 0) {
@@ -165,17 +184,15 @@ class Main {
             this.infoTexts[i].innerText = ` ${exampleCount[i]} examples - ${res.confidences[i] * 100}%`
           }
         }
-        //this.classPredictor.innerHTML="You say...<strong>"+CLASS_NAMES[res.classIndex]+"</strong>";
         predicted=CLASS_NAMES[res.classIndex];
       }
-
+      doPredict();
       // Dispose image when done
       image.dispose();
       if (logits != null) {
         logits.dispose();
       }
     }
-    this.timer = requestAnimationFrame(this.animate.bind(this));
   }
 }
 function doPredict() {

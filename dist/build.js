@@ -83,15 +83,13 @@ var Main = function () {
 
       // Listen for mouse events when clicking the button
       button.addEventListener('mousedown', function () {
-        return _this.training = i;
+        _this.training = i;_this.trainExample();
       });
       button.addEventListener('mouseup', function () {
         return _this.training = -1;
       });
 
-      button.addEventListener('touchstart', function () {
-        return _this.training = i;
-      });
+      //button.addEventListener('touchstart', () => this.training = i);
       button.addEventListener('touchend', function () {
         return _this.training = -1;
       });
@@ -120,7 +118,9 @@ var Main = function () {
     this.playBtn.style.width = "80px";
     this.playBtn.style.height = "40px";
     this.playBtn.innerText = "PLAY ROUND";
-    this.playBtn.addEventListener('click', doPredict);
+    this.playBtn.addEventListener('click', function () {
+      return _this.playRound().bind(_this);
+    });
     document.body.appendChild(this.playBtn);
 
     // Setup webcam
@@ -169,7 +169,6 @@ var Main = function () {
         this.stop();
       }
       this.video.play();
-      this.timer = requestAnimationFrame(this.animate.bind(this));
     }
   }, {
     key: 'stop',
@@ -178,12 +177,12 @@ var Main = function () {
       cancelAnimationFrame(this.timer);
     }
   }, {
-    key: 'animate',
-    value: function animate() {
+    key: 'trainExample',
+    value: function trainExample() {
       var _this2 = this;
 
       var image, logits, infer, numClasses, res, i, exampleCount;
-      return regeneratorRuntime.async(function animate$(_context2) {
+      return regeneratorRuntime.async(function trainExample$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
@@ -206,7 +205,6 @@ var Main = function () {
 
               if (this.training != -1) {
                 logits = infer();
-
                 // Add current image to classifier
                 this.knn.addExample(logits, this.training);
               }
@@ -245,7 +243,6 @@ var Main = function () {
                   this.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
                 }
               }
-              //this.classPredictor.innerHTML="You say...<strong>"+CLASS_NAMES[res.classIndex]+"</strong>";
               predicted = CLASS_NAMES[res.classIndex];
 
             case 13:
@@ -257,11 +254,83 @@ var Main = function () {
               }
 
             case 15:
-              this.timer = requestAnimationFrame(this.animate.bind(this));
-
-            case 16:
             case 'end':
               return _context2.stop();
+          }
+        }
+      }, null, this);
+    }
+  }, {
+    key: 'playRound',
+    value: function playRound() {
+      var _this3 = this;
+
+      var image, logits, infer, numClasses, res, i, exampleCount;
+      return regeneratorRuntime.async(function playRound$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              if (!this.videoPlaying) {
+                _context3.next = 15;
+                break;
+              }
+
+              // Get image data from video element
+              image = tf.fromPixels(this.video);
+              logits = void 0;
+              // 'conv_preds' is the logits activation of MobileNet.
+
+              infer = function infer() {
+                return _this3.mobilenet.infer(image, 'conv_preds');
+              };
+
+              numClasses = this.knn.getNumClasses();
+
+              if (!(numClasses > 0)) {
+                _context3.next = 12;
+                break;
+              }
+
+              // If classes have been added run predict
+              logits = infer();
+              _context3.next = 9;
+              return regeneratorRuntime.awrap(this.knn.predictClass(logits, TOPK));
+
+            case 9:
+              res = _context3.sent;
+
+
+              for (i = 0; i < NUM_CLASSES; i++) {
+
+                // The number of examples for each class
+                exampleCount = this.knn.getClassExampleCount();
+
+                // Make the predicted class bold
+
+                if (res.classIndex == i) {
+                  this.infoTexts[i].style.fontWeight = 'bold';
+                } else {
+                  this.infoTexts[i].style.fontWeight = 'normal';
+                }
+
+                // Update info text
+                if (exampleCount[i] > 0) {
+                  this.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
+                }
+              }
+              predicted = CLASS_NAMES[res.classIndex];
+
+            case 12:
+              doPredict();
+              // Dispose image when done
+              image.dispose();
+              if (logits != null) {
+                logits.dispose();
+              }
+
+            case 15:
+            case 'end':
+              return _context3.stop();
           }
         }
       }, null, this);
