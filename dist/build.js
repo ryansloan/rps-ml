@@ -41,6 +41,8 @@ var IMAGE_SIZE = 227;
 var TOPK = 10;
 var CLASS_NAMES = ["rock", "paper", "scissors"];
 var predicted = null;
+var example_counts = [0, 0, 0];
+var MIN_EXAMPLES = 20;
 
 var Main = function () {
   function Main() {
@@ -89,9 +91,11 @@ var Main = function () {
         return _this.training = -1;
       });
 
-      //button.addEventListener('touchstart', () => this.training = i);
+      button.addEventListener('touchstart', function () {
+        _this.training = i;_this.trainExample();
+      });
       button.addEventListener('touchend', function () {
-        return _this.training = -1;
+        return _this.traininsg = -1;
       });
 
       // Create info text
@@ -119,7 +123,7 @@ var Main = function () {
     this.playBtn.style.height = "40px";
     this.playBtn.innerText = "PLAY ROUND";
     this.playBtn.addEventListener('click', function () {
-      return _this.playRound().bind(_this);
+      return _this.playRound();
     });
     document.body.appendChild(this.playBtn);
 
@@ -181,79 +185,42 @@ var Main = function () {
     value: function trainExample() {
       var _this2 = this;
 
-      var image, logits, infer, numClasses, res, i, exampleCount;
+      var image, logits, infer;
       return regeneratorRuntime.async(function trainExample$(_context2) {
         while (1) {
           switch (_context2.prev = _context2.next) {
             case 0:
-              if (!this.videoPlaying) {
-                _context2.next = 15;
-                break;
-              }
+              if (this.videoPlaying) {
+                // Get image data from video element
+                image = tf.fromPixels(this.video);
+                logits = void 0;
+                // 'conv_preds' is the logits activation of MobileNet.
 
-              // Get image data from video element
-              image = tf.fromPixels(this.video);
-              logits = void 0;
-              // 'conv_preds' is the logits activation of MobileNet.
+                infer = function infer() {
+                  return _this2.mobilenet.infer(image, 'conv_preds');
+                };
 
-              infer = function infer() {
-                return _this2.mobilenet.infer(image, 'conv_preds');
-              };
-
-              // Train class if one of the buttons is held down
+                // Train class if one of the buttons is held down
 
 
-              if (this.training != -1) {
-                logits = infer();
-                // Add current image to classifier
-                this.knn.addExample(logits, this.training);
-              }
-
-              numClasses = this.knn.getNumClasses();
-
-              if (!(numClasses > 0)) {
-                _context2.next = 13;
-                break;
-              }
-
-              // If classes have been added run predict
-              logits = infer();
-              _context2.next = 10;
-              return regeneratorRuntime.awrap(this.knn.predictClass(logits, TOPK));
-
-            case 10:
-              res = _context2.sent;
-
-
-              for (i = 0; i < NUM_CLASSES; i++) {
-
-                // The number of examples for each class
-                exampleCount = this.knn.getClassExampleCount();
-
-                // Make the predicted class bold
-
-                if (res.classIndex == i) {
-                  this.infoTexts[i].style.fontWeight = 'bold';
-                } else {
-                  this.infoTexts[i].style.fontWeight = 'normal';
+                if (this.training != -1) {
+                  logits = infer();
+                  // Add current image to classifier
+                  this.knn.addExample(logits, this.training);
+                }
+                example_counts[this.training]++;
+                if (example_counts[this.training] > 0) {
+                  this.infoTexts[this.training].innerText = ' ' + example_counts[this.training] + ' examples ' + (example_counts[this.training] >= MIN_EXAMPLES ? '✅' : '');
                 }
 
-                // Update info text
-                if (exampleCount[i] > 0) {
-                  this.infoTexts[i].innerText = ' ' + exampleCount[i] + ' examples - ' + res.confidences[i] * 100 + '%';
+                // Dispose image when done
+                image.dispose();
+                if (logits != null) {
+                  logits.dispose();
                 }
               }
-              predicted = CLASS_NAMES[res.classIndex];
 
-            case 13:
-
-              // Dispose image when done
-              image.dispose();
-              if (logits != null) {
-                logits.dispose();
-              }
-
-            case 15:
+            case 1:
             case 'end':
               return _context2.stop();
           }
