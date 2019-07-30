@@ -151,7 +151,7 @@ class Main {
     }
   }
 
-async playRound() {
+  async playRound() {
       if (this.videoPlaying) {
       // Get image data from video element
       const image = tf.fromPixels(this.video);
@@ -186,7 +186,7 @@ async playRound() {
         }
         predicted=CLASS_NAMES[res.classIndex];
       }
-      doPredict();
+      this.roundResult();
       // Dispose image when done
       image.dispose();
       if (logits != null) {
@@ -194,41 +194,42 @@ async playRound() {
       }
     }
   }
-}
-function doPredict() {
-  console.log("do prediction and round");
-  let win=0;
-  let computer_choice = CLASS_NAMES[Math.floor(Math.random()*3)];
-  console.log("computer chose "+computer_choice);
-  if (predicted==="paper" && computer_choice == "scissors") {
-    win=-1;
-  }
-  if (predicted==="paper" && computer_choice == "rock") {
-    win=1;
-  }
-  if (predicted==="paper" && computer_choice == "paper") {
-    win=0;
-  }
-  if (predicted==="rock" && computer_choice == "scissors") {
-    win=1;
-  }
-  if (predicted==="rock" && computer_choice == "paper") {
-    win=-1;
-  }
-  if (predicted==="rock" && computer_choice == "rock") {
-    win=0;
-  }
-  if (predicted==="scissors" && computer_choice == "rock") {
-    win=-1;
-  }
-  if (predicted==="scissors" && computer_choice == "paper") {
-    win=1;
-  }
-  if (predicted==="scissors" && computer_choice == "scissors") {
-    win=0;
-  }
-  console.log(win);
-  alert("You played..."+predicted+"\n Computer played "+computer_choice+"\n"+(win>0 ? "YOU WIN" : win==0 ? "DRAW" : "YOU LOSE"));
+  roundResult() {
+    console.log("do prediction and round");
+    let win=0;
+    let computer_choice = CLASS_NAMES[Math.floor(Math.random()*3)];
+    console.log("computer chose "+computer_choice);
+    if (predicted==="paper" && computer_choice == "scissors") {
+      win=-1;
+    }
+    if (predicted==="paper" && computer_choice == "rock") {
+      win=1;
+    }
+    if (predicted==="paper" && computer_choice == "paper") {
+      win=0;
+    }
+    if (predicted==="rock" && computer_choice == "scissors") {
+      win=1;
+    }
+    if (predicted==="rock" && computer_choice == "paper") {
+      win=-1;
+    }
+    if (predicted==="rock" && computer_choice == "rock") {
+      win=0;
+    }
+    if (predicted==="scissors" && computer_choice == "rock") {
+      win=-1;
+    }
+    if (predicted==="scissors" && computer_choice == "paper") {
+      win=1;
+    }
+    if (predicted==="scissors" && computer_choice == "scissors") {
+      win=0;
+    }
+    console.log(win);
+    alert("You played..."+predicted+"\n Computer played "+computer_choice+"\n"+(win>0 ? "YOU WIN" : win==0 ? "DRAW" : "YOU LOSE"));
 
+    }
 }
+
 window.addEventListener('load', () => new Main());
