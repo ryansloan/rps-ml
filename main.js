@@ -65,9 +65,7 @@ class Main {
       button.addEventListener('mousedown', () => { this.training = i; this.trainExample();});
       button.addEventListener('mouseup', () => this.training = -1);
 
-      button.addEventListener('touchstart', () => { this.training = i; this.trainExample();});
-      button.addEventListener('touchend', () => this.traininsg = -1);
-
+      
       // Create info text
       const infoText = document.createElement('span')
       infoText.innerText = " No examples added";

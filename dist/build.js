@@ -2378,13 +2378,6 @@ var Main = function () {
         return _this.training = -1;
       });
 
-      button.addEventListener('touchstart', function () {
-        _this.training = i;_this.trainExample();
-      });
-      button.addEventListener('touchend', function () {
-        return _this.traininsg = -1;
-      });
-
       // Create info text
       var infoText = document.createElement('span');
       infoText.innerText = " No examples added";
